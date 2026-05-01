@@ -24,7 +24,7 @@
   let races = $state<RaceRow[]>([]);
   let loaded = $state(false);
   let error = $state<string | null>(null);
-  const roundEls: Array<HTMLElement | null> = [];
+  let roundEls = $state<Array<HTMLElement | null>>([]);
 
   const SESSIONS: Array<{ key: keyof ScheduleRace; label: string }> = [
     { key: 'FirstPractice', label: 'Practice 1' },
