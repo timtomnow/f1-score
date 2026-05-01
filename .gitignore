@@ -1,0 +1,48 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+dev-dist
+
+# Caches
+.vite
+.cache
+*.tsbuildinfo
+
+# Test coverage
+coverage
+.nyc_output
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files (allow .env.example for documentation)
+.env
+.env.*
+!.env.example
+*.local
+
+# Editor / IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# Claude Code — local-only state and user-specific settings
+.claude/settings.local.json
+.claude/projects
+.claude/.cache
+.claude/.session
