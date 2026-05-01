@@ -2,6 +2,7 @@ export type Route =
   | { name: 'home'; path: '#/' }
   | { name: 'schedule'; path: '#/schedule' }
   | { name: 'standings'; path: '#/standings' }
+  | { name: 'settings'; path: '#/settings' }
   | { name: 'unknown'; path: string };
 
 export type RouteName = Route['name'];
@@ -9,7 +10,8 @@ export type RouteName = Route['name'];
 const KNOWN: Record<string, Route> = {
   '#/': { name: 'home', path: '#/' },
   '#/schedule': { name: 'schedule', path: '#/schedule' },
-  '#/standings': { name: 'standings', path: '#/standings' }
+  '#/standings': { name: 'standings', path: '#/standings' },
+  '#/settings': { name: 'settings', path: '#/settings' }
 };
 
 function parse(hash: string): Route {

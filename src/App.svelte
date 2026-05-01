@@ -1,9 +1,18 @@
 <script lang="ts">
   import { router } from './lib/router.svelte';
+  import { prefs } from './lib/prefs.svelte';
   import BottomNav from './components/BottomNav.svelte';
   import Home from './views/Home.svelte';
   import Schedule from './views/Schedule.svelte';
   import Standings from './views/Standings.svelte';
+  import Settings from './views/Settings.svelte';
+
+  $effect(() => {
+    const on = prefs.value.reducedMotion;
+    if (typeof document === 'undefined') return;
+    if (on) document.documentElement.setAttribute('data-reduced-motion', 'true');
+    else document.documentElement.removeAttribute('data-reduced-motion');
+  });
 </script>
 
 <header class="hdr">
@@ -15,6 +24,8 @@
     <Schedule />
   {:else if router.current.name === 'standings'}
     <Standings />
+  {:else if router.current.name === 'settings'}
+    <Settings />
   {:else}
     <Home />
   {/if}

@@ -4,6 +4,8 @@
   import { getSessions, type Session } from '../lib/openf1';
   import { getRaceResults, type RaceResult, type RaceWithResults } from '../lib/jolpica';
   import { countdownParts, formatCountdown, formatRaceDateTime, formatRaceDate } from '../lib/format';
+  import { prefs } from '../lib/prefs.svelte';
+  import { theme, driverDisplayName } from '../lib/theme.svelte';
   import Card from '../components/Card.svelte';
   import Badge from '../components/Badge.svelte';
   import Skeleton from '../components/Skeleton.svelte';
@@ -51,6 +53,30 @@
 
   let podium = $derived<RaceResult[]>(
     lastRace?.Results ? lastRace.Results.slice(0, 3) : []
+  );
+
+  let favoriteDriver = $derived(
+    theme.drivers.find((d) => String(d.driver_number) === prefs.value.favoriteDriverId) ?? null
+  );
+
+  let favoriteResult = $derived.by<RaceResult | null>(() => {
+    if (!favoriteDriver || !lastRace?.Results) return null;
+    const num = String(favoriteDriver.driver_number);
+    const last = (favoriteDriver.last_name ?? '').toLowerCase();
+    const first = (favoriteDriver.first_name ?? '').toLowerCase();
+    return (
+      lastRace.Results.find((r) => r.Driver.permanentNumber === num) ??
+      lastRace.Results.find(
+        (r) =>
+          r.Driver.familyName.toLowerCase() === last &&
+          r.Driver.givenName.toLowerCase() === first
+      ) ??
+      null
+    );
+  });
+
+  let favoriteLabel = $derived(
+    favoriteDriver ? driverDisplayName(favoriteDriver) : null
   );
 
   onMount(() => {
@@ -151,6 +177,22 @@
         </li>
       {/each}
     </ol>
+
+    {#if favoriteDriver && (!favoriteResult || Number(favoriteResult.position) > 3)}
+      <div class="fav-finish" aria-label="Favorite driver result">
+        <span class="fav-label">Your driver</span>
+        {#if favoriteResult}
+          <span class="fav-pos">P{favoriteResult.position}</span>
+          <TeamDot constructorId={favoriteResult.Constructor.constructorId} />
+          <span class="fav-name">{favoriteResult.Driver.givenName} {favoriteResult.Driver.familyName}</span>
+          <span class="fav-pts">{favoriteResult.points}</span>
+        {:else}
+          <span class="fav-pos muted">—</span>
+          <span class="fav-name">{favoriteLabel}</span>
+          <span class="fav-pts muted">DNR</span>
+        {/if}
+      </div>
+    {/if}
   {/if}
 </Card>
 
@@ -270,5 +312,50 @@
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     font-weight: 700;
+  }
+
+  .fav-finish {
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    display: grid;
+    grid-template-columns: auto auto auto 1fr auto;
+    align-items: center;
+    gap: var(--space-3);
+    background: var(--accent-bg);
+    border-radius: var(--radius-md);
+    box-shadow: inset 3px 0 0 var(--accent);
+    font-size: 13px;
+  }
+  .fav-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-faint);
+  }
+  .fav-pos {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .fav-pos.muted {
+    color: var(--text-faint);
+  }
+  .fav-name {
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .fav-pts {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+  .fav-pts.muted {
+    color: var(--text-faint);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 1px;
   }
 </style>
