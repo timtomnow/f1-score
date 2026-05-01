@@ -1,0 +1,90 @@
+<script lang="ts">
+  import { router, navigate, type RouteName } from '../lib/router.svelte';
+
+  interface Tab {
+    name: RouteName;
+    path: string;
+    label: string;
+  }
+
+  const TABS: Tab[] = [
+    { name: 'home', path: '#/', label: 'Home' },
+    { name: 'schedule', path: '#/schedule', label: 'Schedule' },
+    { name: 'standings', path: '#/standings', label: 'Standings' }
+  ];
+
+  function handleClick(path: string, event: MouseEvent): void {
+    event.preventDefault();
+    navigate(path);
+  }
+</script>
+
+<nav class="bnav" aria-label="Primary">
+  <ul>
+    {#each TABS as tab (tab.name)}
+      {@const active = router.current.name === tab.name}
+      <li>
+        <a
+          href={tab.path}
+          class:active
+          aria-current={active ? 'page' : undefined}
+          onclick={(e) => handleClick(tab.path, e)}
+        >
+          <span class="icon" aria-hidden="true">
+            {#if tab.name === 'home'}
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/></svg>
+            {:else if tab.name === 'schedule'}
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+            {:else}
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V10M12 21V4M19 21v-7"/></svg>
+            {/if}
+          </span>
+          <span class="lbl">{tab.label}</span>
+        </a>
+      </li>
+    {/each}
+  </ul>
+</nav>
+
+<style>
+  .bnav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 10;
+  }
+  ul {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    max-width: var(--max-w);
+    height: var(--bottom-nav-h);
+  }
+  li { display: flex; }
+  a {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--text-faint);
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    min-height: 40px;
+    transition: color 200ms ease-out;
+  }
+  a.active { color: var(--accent); }
+  a:hover { color: var(--text); }
+  a.active:hover { color: var(--accent); }
+  .icon { display: flex; }
+  .lbl { line-height: 1; }
+</style>

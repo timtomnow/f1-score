@@ -24,7 +24,11 @@ system instead.
 | `--text-dim` | `#a0a0a8` | Secondary text |
 | `--text-faint` | `#6c6c75` | Labels, helper text |
 | `--accent` | `#e10600` | Default accent (F1 red); overridden by favorite-driver theme in stage 3 |
+| `--accent-bg` | `rgba(225,6,0,0.14)` | Translucent accent fill (e.g. live-state backdrop) |
 | `--accent-fg` | `#ffffff` | Foreground on accent |
+| `--success` | `#67e0a3` | Positive status (API health OK, finished) |
+| `--error` | `#ff6b6b` | Error/failure text |
+| `--warning` | `#f5a524` | Sprint badge / non-critical warnings |
 
 The favorite-driver theme (stage 3) overrides `--accent`, `--accent-bg`,
 `--accent-fg` at the document root based on the team color map below.
@@ -71,6 +75,29 @@ add it to the scale rather than inlining.
 - Respect safe-area insets — `padding` on `body` reads
   `env(safe-area-inset-*)`.
 - Touch targets ≥ 40px.
+- `--bottom-nav-h` (`64px`) reserves space for the fixed `BottomNav`. The
+  app shell adds bottom padding equal to `--bottom-nav-h + safe-area-inset-bottom`
+  so content never sits under the nav.
+
+### Components
+
+Reusable primitives live in `src/components/`:
+
+- **`Card`** — base surface (`<section>`). Props: `label?`, `inset?`.
+  Snippet props: `children` (default), `action` (header-right slot, e.g.
+  refresh button or "see all" link). Use `inset` for nested cards on
+  `--surface-2`.
+- **`Badge`** — pill. Variants: `live` (accent fill, animated dot),
+  `upcoming` (outline), `finished` (muted), `sprint` (warning fill),
+  `cancelled` (muted, strikethrough).
+- **`BottomNav`** — fixed primary nav. Renders the stage-2 tabs (Home /
+  Schedule / Standings). Reads from `lib/router.svelte.ts`. Active tab
+  picks up `--accent`.
+
+Segmented tabs (e.g. Drivers / Constructors on the Standings view) use a
+pill-shaped container of buttons; the active one fills with `--accent`.
+The pattern lives inline in `Standings.svelte` for now — promote to a
+`Segmented` component once a second view needs it.
 
 ---
 
