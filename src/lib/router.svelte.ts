@@ -1,5 +1,6 @@
 export type Route =
   | { name: 'home'; path: '#/' }
+  | { name: 'live'; path: '#/live' }
   | { name: 'schedule'; path: '#/schedule' }
   | { name: 'standings'; path: '#/standings' }
   | { name: 'settings'; path: '#/settings' }
@@ -9,6 +10,7 @@ export type RouteName = Route['name'];
 
 const KNOWN: Record<string, Route> = {
   '#/': { name: 'home', path: '#/' },
+  '#/live': { name: 'live', path: '#/live' },
   '#/schedule': { name: 'schedule', path: '#/schedule' },
   '#/standings': { name: 'standings', path: '#/standings' },
   '#/settings': { name: 'settings', path: '#/settings' }

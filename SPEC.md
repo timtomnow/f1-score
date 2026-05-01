@@ -41,6 +41,26 @@ system instead.
 | `--medal-silver` | `#c8c8d0` | P2 row indicator |
 | `--medal-bronze` | `#c08457` | P3 row indicator |
 
+#### Tyre compound colors (stage 4)
+
+Matches the official F1 compound color convention.
+
+| Token | Value | Fg token | Use |
+|---|---|---|---|
+| `--tyre-soft` | `#e8002d` | `--tyre-soft-fg` `#ffffff` | Soft compound chip |
+| `--tyre-medium` | `#ffd24a` | `--tyre-medium-fg` `#0b0b0d` | Medium compound chip |
+| `--tyre-hard` | `#f5f5f7` | `--tyre-hard-fg` `#0b0b0d` | Hard compound chip |
+| `--tyre-intermediate` | `#67e0a3` | `--tyre-intermediate-fg` `#0b0b0d` | Intermediate chip |
+| `--tyre-wet` | `#3671c6` | `--tyre-wet-fg` `#ffffff` | Wet compound chip |
+| `--tyre-unknown` | `#2a2a32` | `--tyre-unknown-fg` `#a0a0a8` | Unknown / test tyre |
+
+#### Update flash colors (stage 4)
+
+| Token | Value | Use |
+|---|---|---|
+| `--flash-improve-bg` | `rgba(103, 224, 163, 0.22)` | Row background flash when last lap improves |
+| `--flash-worsen-bg` | `rgba(160, 160, 168, 0.12)` | Row background flash when last lap worsens |
+
 The favorite-driver theme (stage 3) overrides `--accent`, `--accent-bg`,
 `--accent-fg` at the document root based on the team color map below.
 
@@ -77,7 +97,16 @@ add it to the scale rather than inlining.
 
 - Card entrance / collapsibles: 200–310ms, ease-out
 - Numeric updates (lap times, gaps): no transition; use color flash on
-  change instead (added in stage 4)
+  change instead (stage 4)
+- Update flash spec (stage 4): when a driver's `last_lap` changes, the
+  row background flashes `--flash-improve-bg` (green tint) if the new lap
+  is faster, or `--flash-worsen-bg` (dim tint) if slower. The flash is
+  applied via a CSS class added in JS; a `transition: background 0.6s ease-out`
+  on the row causes it to fade. When `prefers-reduced-motion` is active
+  (system or `data-reduced-motion='true'` override), the flash classes
+  have no visual effect (background stays `--surface`) because the global
+  reset collapses transition-duration to 0.01ms and the instant removal
+  of the class produces no visible change.
 - Track-viz dot interpolation: continuous via `requestAnimationFrame`
 - Honor `prefers-reduced-motion` globally — already wired in `app.css`,
   with a manual override toggle added in stage 3
@@ -188,8 +217,13 @@ because GitHub Pages serves a single `index.html` and hash routing avoids
 | `#/track` | 7 | Live track visualization |
 | `#/settings` | 3 | Preferences |
 
-Default landing route is configurable in preferences (stage 3); falls back
-to `#/live` during a session weekend, `#/schedule` otherwise.
+Default landing route is configurable in preferences (stage 3). When
+`defaultView` is set to a fixed value, the app navigates to that route on
+first load if the initial path is `#/` or unknown. When `defaultView='auto'`
+(the default), the app checks `sessions?session_key=latest` on first render;
+if `now` falls within `[date_start, date_end]` of that session, it redirects
+to `#/live`, otherwise it stays on `#/` (Home). The auto-routing is
+best-effort — API failure leaves the user on Home.
 
 ---
 
@@ -260,6 +294,14 @@ in conversation but not yet implemented.
 
 - Per-circuit affine transform calibration data (stage 7) — file location
   and format TBD.
-- Update-flash color spec (stage 4) — green for improvement, neutral for
-  worse, fade duration.
 - Off-season detection rule (stage 9) — likely "no session in next 14 days".
+- Stage 5 hook: Q1/Q2/Q3 elimination columns — `Live.svelte` header and
+  `live.svelte.ts` `DriverRow` have intentional gaps for sector times and
+  qualifying phase data.
+- Stage 5 hook: pit-strategy strip — `DriverRow` will gain `pit_count` and
+  full stint history; the timing table layout has a reserved column slot.
+- Stage 6 hook: followed-driver expanded card — `liveState.drivers` already
+  carries `followed` awareness via `prefs.followedDriverIds`; the row
+  component can gain an `expanded` state without a store change.
+- Stage 9: retire-detection flag — OpenF1 does not surface a dedicated
+  "retired" field; `position` rows go stale. Deferred to stage 5/9.

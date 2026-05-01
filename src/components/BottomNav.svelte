@@ -9,6 +9,7 @@
 
   const TABS: Tab[] = [
     { name: 'home', path: '#/', label: 'Home' },
+    { name: 'live', path: '#/live', label: 'Live' },
     { name: 'schedule', path: '#/schedule', label: 'Schedule' },
     { name: 'standings', path: '#/standings', label: 'Standings' },
     { name: 'settings', path: '#/settings', label: 'Settings' }
@@ -34,6 +35,8 @@
           <span class="icon" aria-hidden="true">
             {#if tab.name === 'home'}
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/></svg>
+            {:else if tab.name === 'live'}
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4"/><path d="M17.7 6.3a8 8 0 0 1 0 11.4"/><path d="M3.5 3.5a14 14 0 0 0 0 17"/><path d="M20.5 3.5a14 14 0 0 1 0 17"/></svg>
             {:else if tab.name === 'schedule'}
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
             {:else if tab.name === 'standings'}
@@ -65,7 +68,7 @@
     margin: 0 auto;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     max-width: var(--max-w);
     height: var(--bottom-nav-h);
   }

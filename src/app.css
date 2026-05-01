@@ -21,6 +21,22 @@
   --medal-silver: #c8c8d0;
   --medal-bronze: #c08457;
 
+  --tyre-soft: #e8002d;
+  --tyre-soft-fg: #ffffff;
+  --tyre-medium: #ffd24a;
+  --tyre-medium-fg: #0b0b0d;
+  --tyre-hard: #f5f5f7;
+  --tyre-hard-fg: #0b0b0d;
+  --tyre-intermediate: #67e0a3;
+  --tyre-intermediate-fg: #0b0b0d;
+  --tyre-wet: #3671c6;
+  --tyre-wet-fg: #ffffff;
+  --tyre-unknown: #2a2a32;
+  --tyre-unknown-fg: #a0a0a8;
+
+  --flash-improve-bg: rgba(103, 224, 163, 0.22);
+  --flash-worsen-bg: rgba(160, 160, 168, 0.12);
+
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-card: 16px;
