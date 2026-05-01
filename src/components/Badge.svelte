@@ -45,7 +45,7 @@
   }
   .badge.sprint {
     background: var(--warning);
-    color: #1a1300;
+    color: var(--warning-fg);
   }
   .badge.cancelled {
     background: var(--surface-2);

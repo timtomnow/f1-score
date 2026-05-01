@@ -6,9 +6,11 @@
     type DriverStanding,
     type ConstructorStanding
   } from '../lib/jolpica';
-  import { teamColor } from '../lib/teams';
   import { formatPoints } from '../lib/format';
   import Card from '../components/Card.svelte';
+  import Segmented from '../components/Segmented.svelte';
+  import Skeleton from '../components/Skeleton.svelte';
+  import TeamDot from '../components/TeamDot.svelte';
 
   type Tab = 'drivers' | 'constructors';
 
@@ -30,6 +32,11 @@
   let constructorsLoaded = $state(!!cache.constructors);
   let driversError = $state<string | null>(null);
   let constructorsError = $state<string | null>(null);
+
+  const TAB_OPTIONS = [
+    { value: 'drivers', label: 'Drivers' },
+    { value: 'constructors', label: 'Constructors' }
+  ];
 
   async function loadDrivers(force = false): Promise<void> {
     if (!force && cache.drivers && Date.now() - cache.drivers.fetchedAt < FRESH_MS) {
@@ -69,9 +76,9 @@
     }
   }
 
-  function selectTab(next: Tab): void {
-    tab = next;
-    if (next === 'drivers') void loadDrivers();
+  function selectTab(next: string): void {
+    tab = next as Tab;
+    if (tab === 'drivers') void loadDrivers();
     else void loadConstructors();
   }
 
@@ -80,44 +87,33 @@
   });
 </script>
 
-<header class="vh">
+<header class="view-header">
   <h1>Standings</h1>
 </header>
 
-<div class="seg" role="tablist" aria-label="Standings type">
-  <button
-    role="tab"
-    aria-selected={tab === 'drivers'}
-    class:active={tab === 'drivers'}
-    onclick={() => selectTab('drivers')}
-  >Drivers</button>
-  <button
-    role="tab"
-    aria-selected={tab === 'constructors'}
-    class:active={tab === 'constructors'}
-    onclick={() => selectTab('constructors')}
-  >Constructors</button>
+<div class="seg-wrap">
+  <Segmented
+    options={TAB_OPTIONS}
+    value={tab}
+    onChange={selectTab}
+    ariaLabel="Standings type"
+  />
 </div>
 
 {#if tab === 'drivers'}
   <Card>
     {#if driversError}
-      <div class="err">{driversError}</div>
+      <div class="text-err">{driversError}</div>
     {:else if !driversLoaded}
-      <div class="skel">
-        {#each [0, 1, 2, 3, 4, 5, 6, 7] as i (i)}
-          <div class="skel-line"></div>
-        {/each}
-      </div>
+      <Skeleton lines={8} height="28px" />
     {:else if drivers.length === 0}
-      <div class="empty">No standings available.</div>
+      <div class="text-empty">No standings available.</div>
     {:else}
       <ol class="rows">
         {#each drivers as s (s.Driver.driverId)}
-          {@const color = teamColor(s.Constructors[0]?.constructorId ?? '')}
           <li class="row driver">
             <span class="pos">{s.position}</span>
-            <span class="dot" style:background={color.accent} aria-hidden="true"></span>
+            <TeamDot constructorId={s.Constructors[0]?.constructorId ?? ''} />
             <span class="code">{s.Driver.code ?? s.Driver.familyName.slice(0, 3).toUpperCase()}</span>
             <span class="name">
               <span class="full">{s.Driver.givenName} {s.Driver.familyName}</span>
@@ -133,22 +129,17 @@
 {:else}
   <Card>
     {#if constructorsError}
-      <div class="err">{constructorsError}</div>
+      <div class="text-err">{constructorsError}</div>
     {:else if !constructorsLoaded}
-      <div class="skel">
-        {#each [0, 1, 2, 3, 4, 5, 6, 7] as i (i)}
-          <div class="skel-line"></div>
-        {/each}
-      </div>
+      <Skeleton lines={8} height="28px" />
     {:else if constructors.length === 0}
-      <div class="empty">No standings available.</div>
+      <div class="text-empty">No standings available.</div>
     {:else}
       <ol class="rows">
         {#each constructors as c (c.Constructor.constructorId)}
-          {@const color = teamColor(c.Constructor.constructorId)}
-          <li class="row team">
+          <li class="row team-row">
             <span class="pos">{c.position}</span>
-            <span class="dot" style:background={color.accent} aria-hidden="true"></span>
+            <TeamDot constructorId={c.Constructor.constructorId} />
             <span class="name">
               <span class="full">{c.Constructor.name}</span>
             </span>
@@ -162,31 +153,8 @@
 {/if}
 
 <style>
-  .vh { margin-bottom: var(--space-3); }
-  .vh h1 { font-size: 22px; font-weight: 700; margin: 0; }
-
-  .seg {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
-    padding: var(--space-1);
+  .seg-wrap {
     margin-bottom: var(--space-4);
-    gap: var(--space-1);
-  }
-  .seg button {
-    min-height: 40px;
-    border-radius: var(--radius-pill);
-    color: var(--text-dim);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    transition: background 200ms ease-out, color 200ms ease-out;
-  }
-  .seg button.active {
-    background: var(--accent);
-    color: var(--accent-fg);
   }
 
   .rows {
@@ -206,7 +174,7 @@
     border-bottom: 1px solid var(--border);
   }
   .row.driver { grid-template-columns: 24px 8px 44px 1fr auto auto; }
-  .row.team { grid-template-columns: 24px 8px 1fr auto auto; }
+  .row.team-row { grid-template-columns: 24px 8px 1fr auto auto; }
   .row:last-child { border-bottom: none; }
 
   .pos {
@@ -214,11 +182,6 @@
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     color: var(--text-faint);
-  }
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
   }
   .code {
     font-family: var(--font-mono);
@@ -253,23 +216,5 @@
     font-weight: 700;
     min-width: 38px;
     text-align: right;
-  }
-
-  .empty { color: var(--text-faint); font-size: 14px; }
-  .err { color: var(--error); font-size: 13px; font-family: var(--font-mono); }
-
-  .skel { display: flex; flex-direction: column; gap: var(--space-2); }
-  .skel-line {
-    height: 28px;
-    background: var(--surface-2);
-    border-radius: 6px;
-    animation: shimmer 1.4s ease-in-out infinite;
-  }
-  @keyframes shimmer {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .skel-line { animation: none; }
   }
 </style>

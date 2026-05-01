@@ -4,9 +4,10 @@
   import { getSessions, type Session } from '../lib/openf1';
   import { getRaceResults, type RaceResult, type RaceWithResults } from '../lib/jolpica';
   import { countdownParts, formatCountdown, formatRaceDateTime, formatRaceDate } from '../lib/format';
-  import { teamColor } from '../lib/teams';
   import Card from '../components/Card.svelte';
   import Badge from '../components/Badge.svelte';
+  import Skeleton from '../components/Skeleton.svelte';
+  import TeamDot from '../components/TeamDot.svelte';
 
   let nextSession = $state<Session | null>(null);
   let sessionLoaded = $state(false);
@@ -17,7 +18,9 @@
   let raceError = $state<string | null>(null);
 
   let now = $state(Date.now());
+  let srNow = $state(Date.now());
   let tick: ReturnType<typeof setInterval> | undefined;
+  let srTick: ReturnType<typeof setInterval> | undefined;
   let sessionPoller: Poller | undefined;
 
   function findCurrentOrNext(sessions: Session[], at = Date.now()): Session | null {
@@ -35,6 +38,9 @@
 
   let parts = $derived(
     nextSession ? countdownParts(new Date(nextSession.date_start).getTime(), now) : null
+  );
+  let srParts = $derived(
+    nextSession ? countdownParts(new Date(nextSession.date_start).getTime(), srNow) : null
   );
   let isLive = $derived(
     nextSession
@@ -75,25 +81,23 @@
       });
 
     tick = setInterval(() => { now = Date.now(); }, 1000);
+    srTick = setInterval(() => { srNow = Date.now(); }, 60_000);
   });
 
   onDestroy(() => {
     sessionPoller?.stop();
     if (tick) clearInterval(tick);
+    if (srTick) clearInterval(srTick);
   });
 </script>
 
 <Card label="Next session">
   {#if sessionError}
-    <div class="err">{sessionError}</div>
+    <div class="text-err">{sessionError}</div>
   {:else if !sessionLoaded}
-    <div class="skel">
-      <div class="skel-line w70"></div>
-      <div class="skel-line w50"></div>
-      <div class="skel-line w40"></div>
-    </div>
+    <Skeleton lines={3} />
   {:else if !nextSession}
-    <div class="empty">No upcoming session.</div>
+    <div class="text-empty">No upcoming session.</div>
   {:else}
     <div class="head">
       <div class="session-name">{nextSession.session_name}</div>
@@ -108,17 +112,19 @@
     </div>
 
     {#if isLive}
-      <div class="countdown live" aria-live="polite">In progress</div>
+      <div class="countdown live">In progress</div>
     {:else if parts && !parts.past}
-      <div class="countdown" aria-live="polite">
+      <div class="countdown">
         <div class="cd-cells">
           <div class="cell"><span class="num">{parts.days}</span><span class="lbl">d</span></div>
           <div class="cell"><span class="num">{String(parts.hours).padStart(2, '0')}</span><span class="lbl">h</span></div>
           <div class="cell"><span class="num">{String(parts.minutes).padStart(2, '0')}</span><span class="lbl">m</span></div>
           <div class="cell"><span class="num">{String(parts.seconds).padStart(2, '0')}</span><span class="lbl">s</span></div>
         </div>
-        <span class="sr-only">{formatCountdown(parts)} remaining</span>
       </div>
+      <span class="sr-only" aria-live="polite">
+        {srParts ? `${formatCountdown(srParts)} remaining` : ''}
+      </span>
     {/if}
     <div class="start">{formatRaceDateTime(nextSession.date_start)}</div>
   {/if}
@@ -126,25 +132,19 @@
 
 <Card label="Last race">
   {#if raceError}
-    <div class="err">{raceError}</div>
+    <div class="text-err">{raceError}</div>
   {:else if !raceLoaded}
-    <div class="skel">
-      <div class="skel-line w60"></div>
-      <div class="skel-line w50"></div>
-      <div class="skel-line w50"></div>
-      <div class="skel-line w50"></div>
-    </div>
+    <Skeleton lines={4} />
   {:else if !lastRace || podium.length === 0}
-    <div class="empty">No completed races yet.</div>
+    <div class="text-empty">No completed races yet.</div>
   {:else}
     <div class="race-name">{lastRace.raceName}</div>
     <div class="race-date">{formatRaceDate(lastRace.date)}</div>
     <ol class="podium">
       {#each podium as r (r.Driver.driverId)}
-        {@const color = teamColor(r.Constructor.constructorId)}
         <li class="row pos-{r.position}">
           <span class="pos">{r.position}</span>
-          <span class="dot" style:background={color.accent} aria-hidden="true"></span>
+          <TeamDot constructorId={r.Constructor.constructorId} />
           <span class="code">{r.Driver.code ?? r.Driver.familyName.slice(0, 3).toUpperCase()}</span>
           <span class="name">{r.Driver.givenName} {r.Driver.familyName}</span>
           <span class="pts">{r.points}</span>
@@ -181,12 +181,12 @@
   }
   .cell {
     background: var(--surface-2);
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     padding: var(--space-3) var(--space-2);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
+    gap: var(--space-1);
   }
   .num {
     font-family: var(--font-mono);
@@ -196,7 +196,7 @@
     line-height: 1;
   }
   .lbl {
-    font-size: 10px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--text-faint);
@@ -222,8 +222,8 @@
   }
   .race-date {
     color: var(--text-dim);
-    font-size: 13px;
-    margin-top: 2px;
+    font-size: 14px;
+    margin-top: var(--space-1);
     margin-bottom: var(--space-3);
   }
 
@@ -241,24 +241,18 @@
     gap: var(--space-3);
     padding: var(--space-2) var(--space-3);
     background: var(--surface-2);
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     font-size: 14px;
   }
-  .row.pos-1 { box-shadow: inset 3px 0 0 #ffd24a; }
-  .row.pos-2 { box-shadow: inset 3px 0 0 #c8c8d0; }
-  .row.pos-3 { box-shadow: inset 3px 0 0 #c08457; }
+  .row.pos-1 { box-shadow: inset 3px 0 0 var(--medal-gold); }
+  .row.pos-2 { box-shadow: inset 3px 0 0 var(--medal-silver); }
+  .row.pos-3 { box-shadow: inset 3px 0 0 var(--medal-bronze); }
   .pos {
     width: 18px;
     text-align: right;
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     font-weight: 700;
-  }
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
   }
   .code {
     width: 40px;
@@ -276,39 +270,5 @@
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     font-weight: 700;
-  }
-
-  .empty { color: var(--text-faint); font-size: 14px; }
-  .err { color: var(--error); font-size: 13px; font-family: var(--font-mono); word-break: break-all; }
-
-  .skel { display: flex; flex-direction: column; gap: var(--space-2); }
-  .skel-line {
-    height: 14px;
-    background: var(--surface-2);
-    border-radius: 6px;
-    animation: shimmer 1.4s ease-in-out infinite;
-  }
-  .w70 { width: 70%; height: 22px; }
-  .w60 { width: 60%; height: 18px; }
-  .w50 { width: 50%; }
-  .w40 { width: 40%; }
-  @keyframes shimmer {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .skel-line { animation: none; }
-  }
-
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
   }
 </style>

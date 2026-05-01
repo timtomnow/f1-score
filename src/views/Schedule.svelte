@@ -4,6 +4,7 @@
   import { formatRaceDate, formatTime, combineDateTime } from '../lib/format';
   import Card from '../components/Card.svelte';
   import Badge from '../components/Badge.svelte';
+  import Skeleton from '../components/Skeleton.svelte';
 
   type Status = 'live' | 'upcoming' | 'finished';
 
@@ -23,7 +24,7 @@
   let races = $state<RaceRow[]>([]);
   let loaded = $state(false);
   let error = $state<string | null>(null);
-  const roundEls: Array<HTMLElement | undefined> = [];
+  const roundEls: Array<HTMLElement | null> = [];
 
   const SESSIONS: Array<{ key: keyof ScheduleRace; label: string }> = [
     { key: 'FirstPractice', label: 'Practice 1' },
@@ -90,65 +91,56 @@
   });
 </script>
 
-<header class="vh">
+<header class="view-header">
   <h1>Schedule</h1>
 </header>
 
 {#if error}
-  <Card><div class="err">{error}</div></Card>
+  <Card><div class="text-err">{error}</div></Card>
 {:else if !loaded}
-  {#each [0, 1, 2] as i (i)}
+  {#each Array.from({ length: 3 }, (_, i) => i) as i (i)}
     <Card>
-      <div class="skel">
-        <div class="skel-line w40"></div>
-        <div class="skel-line w70"></div>
-        <div class="skel-line w50"></div>
-      </div>
+      <Skeleton lines={3} />
     </Card>
   {/each}
 {:else if races.length === 0}
-  <Card><div class="empty">No schedule available.</div></Card>
+  <Card><div class="text-empty">No schedule available.</div></Card>
 {:else}
   {#each races as row, i (row.race.round)}
-    <div bind:this={roundEls[i]}>
-      <Card>
-        <div class="head">
-          <div class="round">Round {row.race.round}</div>
-          <div class="badges">
-            {#if row.isSprint}<Badge variant="sprint">Sprint</Badge>{/if}
-            {#if row.status === 'live'}
-              <Badge variant="live">Live</Badge>
-            {:else if row.status === 'upcoming'}
-              <Badge variant="upcoming">Upcoming</Badge>
-            {:else}
-              <Badge variant="finished">Finished</Badge>
-            {/if}
-          </div>
+    <Card bind:element={roundEls[i]}>
+      <div class="head">
+        <div class="round">Round {row.race.round}</div>
+        <div class="badges">
+          {#if row.isSprint}<Badge variant="sprint">Sprint</Badge>{/if}
+          {#if row.status === 'live'}
+            <Badge variant="live">Live</Badge>
+          {:else if row.status === 'upcoming'}
+            <Badge variant="upcoming">Upcoming</Badge>
+          {:else}
+            <Badge variant="finished">Finished</Badge>
+          {/if}
         </div>
-        <div class="race-name">{row.race.raceName}</div>
-        <div class="circuit">
-          {row.race.Circuit.circuitName} · {row.race.Circuit.Location.country}
-        </div>
-        <div class="race-date">{formatRaceDate(row.raceIso)}</div>
+      </div>
+      <div class="race-name">{row.race.raceName}</div>
+      <div class="circuit">
+        {row.race.Circuit.circuitName} · {row.race.Circuit.Location.country}
+      </div>
+      <div class="race-date">{formatRaceDate(row.raceIso)}</div>
 
-        <ul class="sessions">
-          {#each row.sessions as s (s.label)}
-            <li>
-              <span class="s-label">{s.label}</span>
-              <span class="s-time">{formatTime(s.iso)}</span>
-              <span class="s-date">{formatRaceDate(s.iso)}</span>
-            </li>
-          {/each}
-        </ul>
-      </Card>
-    </div>
+      <ul class="sessions">
+        {#each row.sessions as s (s.label)}
+          <li>
+            <span class="s-label">{s.label}</span>
+            <span class="s-time">{formatTime(s.iso)}</span>
+            <span class="s-date">{formatRaceDate(s.iso)}</span>
+          </li>
+        {/each}
+      </ul>
+    </Card>
   {/each}
 {/if}
 
 <style>
-  .vh { margin-bottom: var(--space-4); }
-  .vh h1 { font-size: 22px; font-weight: 700; margin: 0; }
-
   .head {
     display: flex;
     justify-content: space-between;
@@ -171,8 +163,8 @@
   }
   .circuit {
     color: var(--text-dim);
-    font-size: 13px;
-    margin-top: 2px;
+    font-size: 14px;
+    margin-top: var(--space-1);
   }
   .race-date {
     color: var(--text-faint);
@@ -189,13 +181,13 @@
     border-top: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-1);
   }
   .sessions li {
     display: grid;
     grid-template-columns: 1fr auto auto;
     gap: var(--space-2);
-    font-size: 13px;
+    font-size: 14px;
     padding: var(--space-1) 0;
     align-items: baseline;
   }
@@ -206,25 +198,4 @@
   }
   .s-time { color: var(--text); }
   .s-date { color: var(--text-faint); font-size: 12px; }
-
-  .empty { color: var(--text-faint); font-size: 14px; }
-  .err { color: var(--error); font-size: 13px; font-family: var(--font-mono); }
-
-  .skel { display: flex; flex-direction: column; gap: var(--space-2); }
-  .skel-line {
-    height: 14px;
-    background: var(--surface-2);
-    border-radius: 6px;
-    animation: shimmer 1.4s ease-in-out infinite;
-  }
-  .w70 { width: 70%; height: 18px; }
-  .w50 { width: 50%; }
-  .w40 { width: 40%; height: 11px; }
-  @keyframes shimmer {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .skel-line { animation: none; }
-  }
 </style>

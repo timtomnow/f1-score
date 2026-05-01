@@ -37,7 +37,7 @@
     color: var(--accent);
   }
   .wordmark-dim {
-    margin-left: 6px;
+    margin-left: var(--space-1);
     color: var(--text);
   }
 </style>

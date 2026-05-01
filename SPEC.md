@@ -27,8 +27,19 @@ system instead.
 | `--accent-bg` | `rgba(225,6,0,0.14)` | Translucent accent fill (e.g. live-state backdrop) |
 | `--accent-fg` | `#ffffff` | Foreground on accent |
 | `--success` | `#67e0a3` | Positive status (API health OK, finished) |
+| `--success-fg` | `#0b0b0d` | Foreground on `--success` fill |
 | `--error` | `#ff6b6b` | Error/failure text |
+| `--error-fg` | `#0b0b0d` | Foreground on `--error` fill |
 | `--warning` | `#f5a524` | Sprint badge / non-critical warnings |
+| `--warning-fg` | `#1a1300` | Foreground on `--warning` fill |
+
+#### Podium accents
+
+| Token | Value | Use |
+|---|---|---|
+| `--medal-gold` | `#ffd24a` | P1 row indicator (Home view podium) |
+| `--medal-silver` | `#c8c8d0` | P2 row indicator |
+| `--medal-bronze` | `#c08457` | P3 row indicator |
 
 The favorite-driver theme (stage 3) overrides `--accent`, `--accent-bg`,
 `--accent-fg` at the document root based on the team color map below.
@@ -43,6 +54,8 @@ add it to the scale rather than inlining.
 
 | Token | Value | Use |
 |---|---|---|
+| `--radius-sm` | `6px` | Tight corners (skeleton lines, narrow chips) |
+| `--radius-md` | `10px` | Mid-size inset surfaces (countdown cells, podium rows) |
 | `--radius-card` | `16px` | Card corners |
 | `--radius-pill` | `999px` | Pill buttons, badges |
 
@@ -83,21 +96,36 @@ add it to the scale rather than inlining.
 
 Reusable primitives live in `src/components/`:
 
-- **`Card`** — base surface (`<section>`). Props: `label?`, `inset?`.
-  Snippet props: `children` (default), `action` (header-right slot, e.g.
-  refresh button or "see all" link). Use `inset` for nested cards on
-  `--surface-2`.
+- **`Card`** — base surface (`<section>`). Props: `label?`, `inset?`,
+  `element?` (bindable ref to inner `<section>`). Snippet props:
+  `children` (default), `action` (header-right slot, e.g. refresh button
+  or "see all" link). Use `inset` for nested cards on `--surface-2`.
+  Prefer nested `<Card inset>` over reimplementing inset surfaces when
+  you only need surface contrast and no special internal layout.
 - **`Badge`** — pill. Variants: `live` (accent fill, animated dot),
   `upcoming` (outline), `finished` (muted), `sprint` (warning fill),
   `cancelled` (muted, strikethrough).
 - **`BottomNav`** — fixed primary nav. Renders the stage-2 tabs (Home /
   Schedule / Standings). Reads from `lib/router.svelte.ts`. Active tab
-  picks up `--accent`.
+  picks up `--accent`, gains a 2px top accent bar, and bumps weight.
+- **`Segmented`** — pill-shaped tab group. Props: `options`, `value`,
+  `onChange`, `ariaLabel?`. Active option fills with `--accent`; uses
+  `aria-pressed` rather than full tab/tabpanel ARIA.
+- **`Skeleton`** — placeholder loader. Props: `lines` (default 3),
+  `height?`. Uses the global `.skel-line` shimmer utility.
+- **`TeamDot`** — colored dot for a constructor. Props: `constructorId`,
+  `size?` (default 8). Resolves color via `teamColor()`.
 
-Segmented tabs (e.g. Drivers / Constructors on the Standings view) use a
-pill-shaped container of buttons; the active one fills with `--accent`.
-The pattern lives inline in `Standings.svelte` for now — promote to a
-`Segmented` component once a second view needs it.
+### Utility classes
+
+Defined in `src/app.css`, used across views:
+
+- `.view-header` — wrapper for top-of-view title (`<h1>` styling baked in).
+- `.text-err` — error message styling (mono, `--error`).
+- `.text-empty` — empty/placeholder message styling.
+- `.skel-line` — shimmer placeholder bar; honors `prefers-reduced-motion`
+  globally.
+- `.sr-only` — visually hidden but available to screen readers.
 
 ---
 

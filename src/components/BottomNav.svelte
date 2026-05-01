@@ -68,21 +68,36 @@
   }
   li { display: flex; }
   a {
+    position: relative;
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: var(--space-1);
     color: var(--text-faint);
     text-decoration: none;
     font-size: 11px;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     min-height: 40px;
     transition: color 200ms ease-out;
   }
-  a.active { color: var(--accent); }
+  a.active {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  a.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32px;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  }
   a:hover { color: var(--text); }
   a.active:hover { color: var(--accent); }
   .icon { display: flex; }

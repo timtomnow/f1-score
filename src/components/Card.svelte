@@ -6,12 +6,19 @@
     inset?: boolean;
     children: Snippet;
     action?: Snippet;
+    element?: HTMLElement | null;
   }
 
-  let { label, inset = false, children, action }: Props = $props();
+  let {
+    label,
+    inset = false,
+    children,
+    action,
+    element = $bindable(null)
+  }: Props = $props();
 </script>
 
-<section class="card" class:inset>
+<section class="card" class:inset bind:this={element}>
   {#if label || action}
     <header class="card-head">
       {#if label}<div class="card-label">{label}</div>{/if}
